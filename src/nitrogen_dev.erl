@@ -73,8 +73,8 @@ command(["compile"]) ->
     sync:go();
 
 command(["page", Name]) ->
-    Filename = filename:join([".", "site", "src", Name ++ ".erl"]),
-    Template = filename:join([".", "site", ".prototypes", "page.erl"]),
+    Filename = filename:join([".", "src", Name ++ ".erl"]),
+    Template = filename:join([os:getenv("HOME"), ".nitrogen", "prototypes", Type ++ ".erl"]),
     case filelib:is_file(Filename) of
         true -> 
             io:format("File already exists: " ++ Filename ++ "!\n");
@@ -85,29 +85,16 @@ command(["page", Name]) ->
             io:format("Remember to recompile!~n")
     end;    
 
-command(["element", Name]) ->
-    Filename = filename:join([".", "site", "src", "elements", "element_" ++ Name ++ ".erl"]),
-    Template = filename:join([".", "site", ".prototypes", "element.erl"]),
+command([Type, Name]) when Type == "action";
+                           Type == "element" ->
+    {Filename, Template} = get_paths(Name, Type),
     case filelib:is_file(Filename) of
         true -> 
             io:format("File already exists: " ++ Filename ++ "!\n");
         false ->
             Contents = template(Template, Name),
             file:write_file(Filename, Contents),
-            io:format("Created element: " ++ Filename ++ "\n"),
-            io:format("Remember to recompile!~n")
-    end;    
-
-command(["action", Name]) ->
-    Filename = filename:join([".", "site", "src", "actions", "action_" ++ Name ++ ".erl"]),
-    Template = filename:join([".", "site", ".prototypes", "action.erl"]),
-    case filelib:is_file(Filename) of
-        true -> 
-            io:format("File already exists: " ++ Filename ++ "!\n");
-        false ->
-            Contents = template(Template, Name),
-            file:write_file(Filename, Contents),
-            io:format("Created action: " ++ Filename ++ "\n"),
+            io:format("Created " ++ Type ++ ": " ++ Filename ++ "\n"),
             io:format("Remember to recompile!~n")
     end;    
 
@@ -131,3 +118,8 @@ replace_name(S, Name) ->
         [] ->
             []
     end.
+
+get_paths(Name, Type) ->
+    Filename = filename:join([".", "src", Type ++ "s", Type ++ "_" ++ Name ++ ".erl"]),
+    Template = filename:join([os:getenv("HOME"), ".nitrogen", "prototypes", Type ++ ".erl"]),
+    {Filename, Template}.
