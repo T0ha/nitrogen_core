@@ -74,7 +74,7 @@ command(["compile"]) ->
 
 command(["page", Name]) ->
     Filename = filename:join([".", "src", Name ++ ".erl"]),
-    Template = filename:join([os:getenv("HOME"), ".nitrogen", "prototypes", Type ++ ".erl"]),
+    Template = filename:join([os:getenv("HOME"), ".nitrogen", "prototypes",  "page.erl"]),
     case filelib:is_file(Filename) of
         true -> 
             io:format("File already exists: " ++ Filename ++ "!\n");
@@ -122,4 +122,5 @@ replace_name(S, Name) ->
 get_paths(Name, Type) ->
     Filename = filename:join([".", "src", Type ++ "s", Type ++ "_" ++ Name ++ ".erl"]),
     Template = filename:join([os:getenv("HOME"), ".nitrogen", "prototypes", Type ++ ".erl"]),
+    io:format("Template: ~p, File: ~p~n", [Template, Filename]),
     {Filename, Template}.
