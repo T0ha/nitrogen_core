@@ -181,6 +181,9 @@ to_unicode_binary(T) ->
 to_integer(T) -> 
     _Integer = wf_convert:to_integer(T).
 
+to_float(T) ->
+    _Float = wf_convert:to_float(T).
+
 to_string_list(Term) ->
     _StringList = wf_convert:to_string_list(Term).
 
@@ -250,6 +253,9 @@ normalize_id(Path) ->
 
 %%% EXPOSE REQUEST INFORMATION %%%
 
+in_request() ->
+    wf_context:in_request().
+
 page_module() -> 
     wf_context:page_module().
 
@@ -307,6 +313,10 @@ cookie_default(Cookie,DefaultValue) ->
 cookie(Cookie, Value) ->
     ok = wf_cookies:set_cookie(Cookie, Value).
 
+cookie(Cookie, Value, Options) ->
+    ok = wf_cookies:set_cookie(Cookie, Value, Options).
+
+%% Deprecated
 cookie(Cookie, Value, Path, MinutesToLive) ->
     ok = wf_cookies:set_cookie(Cookie, Value, Path, MinutesToLive).
 
@@ -350,7 +360,15 @@ q_pl(KeyList) when is_list(KeyList) ->
 
 qs_pl(KeyList) when is_list(KeyList) ->
     [{K,qs(K)} || K <- KeyList].
-        
+
+q_map(KeyList) when is_list(KeyList) ->
+    PL = q_pl(KeyList),
+    maps:from_list(PL).
+
+qs_map(KeyList) when is_list(KeyList) ->
+    PL = qs_pl(KeyList),
+    maps:from_list(PL).
+
 params() ->
     query_handler:get_params().
 
@@ -397,7 +415,29 @@ clear_session() ->
 session_id() ->
     session_handler:session_id().
 
+%%% EXPOSE CACHE_HANDLER %%%
 
+cache(Key) ->
+    cache(Key, fun() -> undefined end).
+
+cache(Key, Fun) ->
+    cache(Key, infinity, Fun).
+
+cache(Key, TTL, Fun) ->
+    {ok, Value} = cache_handler:get_cached(Key, Fun, TTL),
+    Value.
+
+set_cache(Key, Value) ->
+    set_cache(Key, infinity, Value).
+
+set_cache(Key, TTL, Value) ->
+    cache_handler:set_cached(Key, Value, TTL).
+
+clear_cache(Key) ->
+    ok = cache_handler:clear(Key).
+
+clear_all_cache() ->
+    ok = cache_handler:clear_all().
 
 %%% EXPOSE IDENTITY_HANDLER %%%
 user() -> 

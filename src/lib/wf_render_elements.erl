@@ -70,16 +70,26 @@ prepare_and_render_or_transform(Module, Base, Element) ->
             %% should be used for custom elements that are simply
             %% defined in terms of other Nitrogen elements.
             _Html = call_element_render(transform_element, Module, Element);
-
         false ->
             prepare_and_render(Module, Base, Element)
     end.
 
 -spec prepare_and_render(Module :: atom(), #elementbase{}, nitrogen_element()) -> html().
 prepare_and_render(Module, Base, Element) ->
-    % Currently, every element needs an ID, especially for elements that have
-    % actions wired to them. Truthfully, we can probably remove the automatic
-    % ID/Anchor generation if the #element.actions is empty. Must experiment.
+    % TODO: Revisit generating an ID for each element, instead
+    % generating the ID only if an element has actions.
+    % Otherwise, if an element needs an ID for something
+    % special (like how the #button element needs an anchor to
+    % wire the postback to and for validation stuff), let the
+    % element_render function take care of that itself.
+    %
+    % This change will provide a handful of performance
+    % improvements:
+    %   + Removes having to call temp_id() for every element
+    %   + Removes having to call normalize_id() possibly twice
+    %     for each element
+    %   + Lightens the page size since every element won't have
+    %     an unnecessary 'tempABCXYZ' class.
         
     % Get the anchor, ID, and Class, or create a new ones if not defined...
     Anchor = extract_anchor(Base),
@@ -138,5 +148,8 @@ normalize_id(ID) ->
 
 -spec temp_id() -> string().
 temp_id() ->
-    {_, _, C} = now(), 
-    "temp" ++ integer_to_list(C).
+    Num = ?WF_UNIQUE,  %% For Erlang 18+, is erlang:unique_integer,
+                       %% For Erlang <18, is parts of erlang:now()
+                       %% see compat.escript, and include/compat.hrl for the
+                       %% definition.
+    "temp" ++ integer_to_list(Num).

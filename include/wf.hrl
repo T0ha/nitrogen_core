@@ -1,7 +1,7 @@
 % vim: sw=4 ts=4 et ft=erlang
 -ifndef(wf_inc).
 -define(wf_inc, ok).
--include("crypto_compat.hrl").
+-include("compat.hrl").
 -include("wf_test.hrl").
 
 
@@ -380,7 +380,7 @@
         disabled=false          :: boolean()
     }).
 
--type short_option()        :: {text(), text()}.
+-type short_option()        :: {text(), text()} | text().
 -record(option_group, {
         text=""                 :: text(),
         options=[]              :: [#option{} | short_option()],
@@ -499,6 +499,24 @@
         alt                     :: text(),
         width                   :: integer(),
         height                  :: integer()
+    }).
+-record(video, {?ELEMENT_BASE(element_video),
+        url=""                  :: url(),
+        poster_url=""           :: url(),
+        width=560               :: integer(),
+        height=315              :: integer(),
+        preload=metadata        :: auto | metadata | none,
+        loop=false              :: boolean(),
+        muted=false             :: boolean(),
+        autoplay=false          :: boolean(),
+        controls=false          :: boolean(),
+        body_no_support="Your browser does not support the video tag" :: body()
+    }).
+-record(youtube, {?ELEMENT_BASE(element_youtube),
+        width=560               :: integer(),
+        height=315              :: integer(),
+        key=""                  :: text(),
+        allowfullscreen=true    :: boolean()
     }).
 -record(lightbox, {?ELEMENT_BASE(element_lightbox),
         body=[]                 :: body()
@@ -636,7 +654,10 @@
         back="Back"             :: text(),
         finish="Finish"         :: text(),
         show_progress=true      :: boolean(),
-        progress_text="(Step ~p of ~p)" :: text()
+        progress_text="(Step ~p of ~p)" :: text(),
+        next_class=""           :: text() | [text()],
+        back_class=""           :: text() | [text()],
+        finish_class=""         :: text() | [text()]
     }).
 -record(sparkline, {?ELEMENT_BASE(element_sparkline),
         type=line               :: line | bar | tristate | bullet | discrete | pie | box,
@@ -913,6 +934,10 @@
 -record(function, {?ACTION_BASE(action_function),
         function                :: fun() | undefined
     }).
+-record(js_fun, {?ACTION_BASE(action_js_fun),
+        function                :: atom() | text(),
+        args=[]                 :: [text()]
+    }).
 -record(set, {?ACTION_BASE(action_set),
         value=""                :: text() | integer()
     }).
@@ -1033,7 +1058,10 @@
         cookie                  :: atom() | text(),
         value=""                :: atom() | text(),
         path="/"                :: text(),
-        minutes_to_live=20      :: integer()
+        domain=undefined        :: undefined | text(),
+        minutes_to_live=20      :: integer(),
+        secure=false            :: boolean(),
+        http_only=false         :: boolean()
     }).
 
 %%% Validators %%%
@@ -1050,7 +1078,13 @@
 -record(is_email, {?VALIDATOR_BASE(validator_is_email)}).
 -record(is_integer, {?VALIDATOR_BASE(validator_is_integer),
         min                     :: undefined | integer(),
-        max                     :: undefined | integer()
+        max                     :: undefined | integer(),
+        allow_blank=false       :: boolean()
+    }).
+-record(is_number, {?VALIDATOR_BASE(validator_is_number),
+        min                     :: undefined | integer(),
+        max                     :: undefined | integer(),
+        allow_blank=false       :: boolean()
     }).
 -record(min_length, {?VALIDATOR_BASE(validator_min_length),
         length                  :: undefined | integer()
