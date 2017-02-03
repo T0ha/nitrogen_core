@@ -331,9 +331,9 @@ NitrogenClass.prototype.$get_validation = function(element) {
 // TODO: This needs to be made smarter. Right now, I'm pretty sure elements have
 // single validation groups, while it should be a list of groups that get validated
 NitrogenClass.prototype.$destroy_specific_validation = function(trigger, target) {
-    var v = NitrogenClass.$get_validation(target);
+    var v = Nitrogen.$get_validation(target);
     if(v.group==trigger)
-        Nitrogen.$destroy_target_validation(element);
+        Nitrogen.$destroy_target_validation(target);
 }
 
 NitrogenClass.prototype.$destroy_target_validation = function(element) {
@@ -1081,7 +1081,8 @@ NitrogenClass.prototype.$autocomplete = function(path, autocompleteOptions, ente
     var n = this;
     jQuery.extend(autocompleteOptions, {
         select: function(ev, ui) {
-          var item = (ui.item) && '{"id":"'+ui.item.id+'","value":"'+ui.item.value+'"}' || '';
+          var val = ui.item.value.replace(/"/g,'\\"');
+          var item = (ui.item) && '{"id":"'+ui.item.id+'","value":"'+val+'"}' || '';
           n.$queue_event(null, null, selectPostbackInfo, {select_item: item});
         },
         source: function(req, res) {
