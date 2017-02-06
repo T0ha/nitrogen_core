@@ -4,6 +4,11 @@
 -include("compat.hrl").
 -include("wf_test.hrl").
 
+%% This is the parse_transform to allow extending fields
+-compile({parse_transform, rekt}).
+
+-define(WF_EXTEND(OrigRec, NewRec, Module, Fields), -extend({OrigRec, NewRec, [{module, Module} | Fields]})).
+
 
 %%% TYPES FOR DIALYZER %%%
 
@@ -55,7 +60,7 @@
 -type encoding()            :: none | unicode | auto | encoding_function().
 -type context_data()        :: iolist() | {file, Filename :: path()}
                                 | {stream, Size :: integer(), fun()}.
--type context_type()        :: first_request | postback_request | static_file | postback_websocket.
+-type context_type()        :: first_request | postback_request | static_file | postback_websocket | undefined.
 %%% CONTEXT %%%
 
 % Page Request Information.
@@ -400,7 +405,7 @@
         handle_invalid=false    :: boolean(),
         on_invalid              :: undefined | actions(),
         delegate                :: module(),
-        value                   :: text(),
+        value                   :: atom() | text() | integer(),
         next                    :: id(),
         multiple=false          :: boolean(),
         disabled=false          :: boolean(),
@@ -499,9 +504,9 @@
     }).
 -record(image, {?ELEMENT_BASE(element_image),
         image=""                :: url(),
-        alt                     :: text(),
-        width                   :: integer(),
-        height                  :: integer()
+        alt=""                  :: text(),
+        width                   :: undefined|integer(),
+        height                  :: undefined|integer()
     }).
 -record(video, {?ELEMENT_BASE(element_video),
         url=""                  :: url(),
@@ -644,6 +649,7 @@
         show_button=true        :: boolean(),
         file_text="Select file" :: text(),
         button_text="Upload"    :: text(),
+        button_class=""         :: class() | [class()],
         droppable=false         :: boolean(),
         droppable_text="Drop Files Here" :: text(),
         multiple=false          :: boolean(),
@@ -651,8 +657,8 @@
     }).
 -record(wizard, {?ELEMENT_BASE(element_wizard),
         tag                     :: term(),
-        titles                  :: [text()],
-        steps                   :: [body()],
+        titles                  :: undefined | [text()],
+        steps=[]                :: [body()],
         next="Next"             :: text(),
         back="Back"             :: text(),
         finish="Finish"         :: text(),

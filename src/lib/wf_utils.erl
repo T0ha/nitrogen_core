@@ -14,6 +14,7 @@
     is_process_alive/1,
     debug/0, break/0,
     get_elementbase/1, get_actionbase/1, get_validatorbase/1, replace_with_base/2,
+    fast_copy_fields/2,
     indexof/2,
     replace_field/4,
     get_field/3,
@@ -149,6 +150,31 @@ copy_fields(FromElement, ToElement) ->
 
     %% Here we use tl(tl( to ignore the first 2 fields from reflect()
     end, ToElement, tl(tl(lists:zip(FromFieldList,FromValueList)))).
+
+-spec fast_copy_fields(tuple(), tuple()) -> tuple().
+%% @doc This is a shortcut converter from one element to another.  It expects
+%% that the element that's being copied was extended using ?WF_EXTEND (which
+%% uses the `rekt` parsetransform).
+%% It just uses replace_with_base to copy all fields from FromElement to ToElement, 
+fast_copy_fields(FromElement, ToElement) when tuple_size(FromElement) =< tuple_size(ToElement) ->
+    Mod2 = element(3, ToElement),
+    New = replace_with_base(FromElement, ToElement),
+    setelement(3, New, Mod2);
+fast_copy_fields(FromElement, ToElement) ->
+    %% Get record tag and callback module
+    Tag = element(1, ToElement),
+    Mod = element(3, ToElement),
+    %% Get size of target tuple
+    FinalSize = tuple_size(ToElement),
+    %% Convert from tuple to a list
+    AllFields = tuple_to_list(FromElement),
+    %% and extract only the truncated number of fields (ignoring record tag and callback module - elements 1 and 3 respectively)
+    [_, Type, _ | TruncFields] = lists:sublist(AllFields, FinalSize),
+    %% replace tag and module in field list
+    NewList = [Tag, Type, Mod | TruncFields],
+    %% and convert to completed tuple
+    list_to_tuple(NewList).
+
 
 %%% EMPTY LIST/BINARY CHECK
 
